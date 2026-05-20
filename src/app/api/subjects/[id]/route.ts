@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { connectDB } from "@/lib/mongodb";
+import { isValidTaskGrade } from "@/lib/grades";
 import { TASK_COUNT } from "@/lib/subjects";
 import { Subject } from "@/models/Subject";
+import type { TaskGrade } from "@/types/subject";
 
 type RouteContext = { params: Promise<{ id: string }> };
 
@@ -10,14 +12,23 @@ function invalidId(id: string) {
   return !mongoose.Types.ObjectId.isValid(id);
 }
 
-function normalizeTasks(raw: unknown): (number | null)[] | null {
+function normalizeTasks(raw: unknown): TaskGrade[] | null {
   if (!Array.isArray(raw) || raw.length !== TASK_COUNT) return null;
-  return raw.map((v) => {
-    if (v === null || v === undefined || v === "") return null;
-    const n = Number(v);
+  const tasks: TaskGrade[] = [];
+  for (const item of raw as unknown[]) {
+    if (item === null || item === undefined || item === "") {
+      tasks.push(null);
+      continue;
+    }
+    if (item === "NE") {
+      tasks.push("NE");
+      continue;
+    }
+    const n = Number(item);
     if (Number.isNaN(n) || n < 0 || n > 10) return null;
-    return Math.round(n * 100) / 100;
-  });
+    tasks.push(Math.round(n * 100) / 100);
+  }
+  return tasks;
 }
 
 function normalizeGrade(raw: unknown): number | null | undefined {

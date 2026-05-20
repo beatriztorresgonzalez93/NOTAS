@@ -54,11 +54,11 @@ Las **8 asignaturas** del ciclo son fijas (no se pueden crear ni borrar en la we
 
 Por cada asignatura rellena:
 
-- **T1–T9**: nota de cada tarea (0–10)
+- **T1–T9**: nota (0–10) o **NE** (no entregado; cuenta en la media como 0)
 - **Examen**: una nota
 - **Final**: nota final (la escribes tú)
 
-Al salir de cada celda (o pulsar Enter) se guarda en MongoDB. La columna *Media* promedia **solo las tareas con nota** (las celdas vacías no entran; el examen y la nota final no cuentan).
+Al salir de cada celda (o pulsar Enter) se guarda en MongoDB. La columna *Media* usa solo tareas con registro (nota o NE); las vacías no entran.
 
 ## Scripts
 
