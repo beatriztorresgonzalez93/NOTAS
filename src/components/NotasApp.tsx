@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { TASK_COUNT } from "@/lib/subjects";
-import {
-  averageFilledGrades,
-  formatGrade,
-  parseGradeInput,
-} from "@/lib/grades";
+import { averageTasksOnly, formatGrade, parseGradeInput } from "@/lib/grades";
 import type { Subject } from "@/types/subject";
 
 function GradeCell({
@@ -95,10 +91,9 @@ function SubjectRow({
     [subject._id, onUpdate]
   );
 
-  const suggested = averageFilledGrades([
-    ...subject.tasks,
-    subject.exam,
-  ]);
+  const { average: tasksAverage, count: tasksCount } = averageTasksOnly(
+    subject.tasks
+  );
 
   return (
     <tr
@@ -139,8 +134,17 @@ function SubjectRow({
           onSave={async (finalGrade) => persist({ finalGrade })}
         />
       </td>
-      <td className="hidden px-3 py-2 align-middle text-center text-xs text-zinc-500 lg:table-cell">
-        {suggested !== null ? suggested : "—"}
+      <td className="hidden px-3 py-2 align-middle text-center lg:table-cell">
+        {tasksAverage !== null ? (
+          <span className="text-sm font-medium text-zinc-300">
+            {tasksAverage}
+            <span className="mt-0.5 block text-[10px] font-normal text-zinc-600">
+              {tasksCount} tarea{tasksCount !== 1 ? "s" : ""}
+            </span>
+          </span>
+        ) : (
+          <span className="text-xs text-zinc-600">—</span>
+        )}
       </td>
     </tr>
   );
@@ -248,8 +252,8 @@ export default function NotasApp() {
               </table>
             </div>
             <p className="border-t border-white/[0.06] px-4 py-3 text-xs text-zinc-600">
-              * Media orientativa de tareas + examen (solo referencia; la nota
-              final la escribes tú).
+              * Media solo de las tareas con nota (T1–T9 rellenas). Las vacías no
+              cuentan; si una asignatura usa 6 tareas, deja el resto en blanco.
             </p>
           </div>
         )}

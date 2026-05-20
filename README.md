@@ -50,7 +50,7 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 ## Uso
 
-Las **9 asignaturas** del ciclo son fijas (no se pueden crear ni borrar en la web).
+Las **8 asignaturas** del ciclo son fijas (no se pueden crear ni borrar en la web).
 
 Por cada asignatura rellena:
 
@@ -58,7 +58,7 @@ Por cada asignatura rellena:
 - **Examen**: una nota
 - **Final**: nota final (la escribes tú)
 
-Al salir de cada celda (o pulsar Enter) se guarda en MongoDB. La columna *Media* es solo orientativa (tareas + examen).
+Al salir de cada celda (o pulsar Enter) se guarda en MongoDB. La columna *Media* promedia **solo las tareas con nota** (las celdas vacías no entran; el examen y la nota final no cuentan).
 
 ## Scripts
 
