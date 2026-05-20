@@ -50,20 +50,6 @@ export function TaskGradeCell({
     }
   };
 
-  const setNe = async () => {
-    if (value === "NE") return;
-    setSaving(true);
-    setError(false);
-    try {
-      await onSave("NE");
-      setLocal("NE");
-    } catch {
-      setError(true);
-    } finally {
-      setSaving(false);
-    }
-  };
-
   const styleValue: TaskGrade = (() => {
     const t = local.trim();
     if (t === "") return null;
@@ -73,45 +59,23 @@ export function TaskGradeCell({
   })();
 
   return (
-    <div className={compact ? "flex flex-col gap-0.5" : "flex flex-col items-stretch gap-1"}>
-      <input
-        type="text"
-        inputMode="text"
-        placeholder="—"
-        title="Nota 0–10 o NE"
-        value={local}
-        disabled={disabled || saving}
-        onChange={(e) => {
-          setLocal(e.target.value);
-          setError(false);
-        }}
-        onBlur={() => void commit()}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") e.currentTarget.blur();
-        }}
-        className={`grade-cell w-full ${compact ? "min-w-0 py-1.5 text-xs" : "min-w-[2.75rem] py-2 text-sm"} ${gradeCellClasses(error ? value : styleValue)} ${error ? "ring-2 ring-red-500/70" : ""}`}
-      />
-      {!compact && (
-        <button
-          type="button"
-          disabled={disabled || saving || value === "NE"}
-          onClick={() => void setNe()}
-          className="rounded px-1 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-500/80 transition hover:bg-amber-500/10 hover:text-amber-400 disabled:cursor-default disabled:opacity-30"
-        >
-          NE
-        </button>
-      )}
-      {compact && value !== "NE" && (
-        <button
-          type="button"
-          disabled={disabled || saving}
-          onClick={() => void setNe()}
-          className="text-[8px] font-bold uppercase text-amber-500/70"
-        >
-          NE
-        </button>
-      )}
-    </div>
+    <input
+      type="text"
+      inputMode="text"
+      placeholder="—"
+      title="Nota 0–10 o escribe NE"
+      value={local}
+      disabled={disabled || saving}
+      onChange={(e) => {
+        setLocal(e.target.value);
+        setError(false);
+      }}
+      onBlur={() => void commit()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") e.currentTarget.blur();
+      }}
+      className={`grade-cell w-full ${compact ? "min-w-0 py-1.5 text-xs" : "min-w-[2.75rem] py-2 text-sm"} ${gradeCellClasses(error ? value : styleValue)} ${error ? "ring-2 ring-red-500/70" : ""}`}
+    />
   );
 }
 
