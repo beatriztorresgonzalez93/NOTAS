@@ -23,7 +23,7 @@ export function SubjectCard({
   notifier: Notifier;
 }) {
   const { persist, saving } = useSubjectPersist(subject, onUpdate, notifier);
-  const { average, count, neCount } = averageTasksOnly(subject.tasks);
+  const { average, count, neCount, scCount } = averageTasksOnly(subject.tasks);
   const taskLabels = Array.from({ length: TASK_COUNT }, (_, i) => `T${i + 1}`);
 
   return (
@@ -43,7 +43,8 @@ export function SubjectCard({
             {average}
             <span className="ml-1 font-normal opacity-70">
               ({count}
-              {neCount > 0 ? ` · ${neCount} NE` : ""})
+              {neCount > 0 ? ` · ${neCount} NE` : ""}
+              {scCount > 0 ? ` · ${scCount} SC` : ""})
             </span>
           </span>
         )}

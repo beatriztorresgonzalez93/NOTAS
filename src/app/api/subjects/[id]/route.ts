@@ -20,8 +20,8 @@ function normalizeTasks(raw: unknown): TaskGrade[] | null {
       tasks.push(null);
       continue;
     }
-    if (item === "NE") {
-      tasks.push("NE");
+    if (item === "NE" || item === "SC") {
+      tasks.push(item);
       continue;
     }
     const n = Number(item);

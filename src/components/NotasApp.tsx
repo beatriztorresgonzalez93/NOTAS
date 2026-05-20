@@ -60,6 +60,10 @@ export default function NotasApp() {
         <span className="h-3 w-3 rounded border border-amber-500/45 bg-amber-950/50" />
         NE
       </span>
+      <span className="flex items-center gap-1.5">
+        <span className="h-3 w-3 rounded border border-sky-500/45 bg-sky-950/50" />
+        SC
+      </span>
       <span className="text-zinc-600">Vacío = sin registro</span>
     </div>
   );
@@ -80,8 +84,9 @@ export default function NotasApp() {
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
             Escala 0–10. <span className="text-emerald-400">Verde</span> aprueba,
             <span className="text-red-400"> rojo</span> suspenso,{" "}
-            <span className="text-amber-400">NE</span> no entregado (0 en la
-            media). Se guarda al salir del campo.
+            <span className="text-amber-400">NE</span> no entregado (0 en media),{" "}
+            <span className="text-sky-400">SC</span> entregado sin nota (no
+            cuenta). Se guarda al salir del campo.
           </p>
           {legend}
         </header>
@@ -152,7 +157,7 @@ export default function NotasApp() {
                 </table>
               </div>
               <p className="border-t border-white/[0.06] px-4 py-3 text-xs text-zinc-600">
-                * Media de tareas con registro (nota o NE). Vacío = no cuenta.
+                * Media: notas y NE. SC y vacío no cuentan.
               </p>
             </div>
           </>

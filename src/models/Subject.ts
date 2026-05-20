@@ -33,7 +33,7 @@ const subjectSchema = new Schema<ISubject>(
           if (v.length !== TASK_COUNT) return false;
           return v.every(isValidTaskGrade);
         },
-        message: `Debe haber ${TASK_COUNT} tareas (0–10, NE o vacío)`,
+        message: `Debe haber ${TASK_COUNT} tareas (0–10, NE, SC o vacío)`,
       },
     },
     exam: gradeField,

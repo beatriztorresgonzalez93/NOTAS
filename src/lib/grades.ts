@@ -1,5 +1,7 @@
 import type { TaskGrade } from "@/types/subject";
 
+const TASK_CODES = ["NE", "SC"] as const;
+
 export function parseGradeInput(value: string): number | null {
   const trimmed = value.trim();
   if (trimmed === "") return null;
@@ -11,7 +13,10 @@ export function parseGradeInput(value: string): number | null {
 export function parseTaskInput(value: string): TaskGrade | "INVALID" {
   const trimmed = value.trim();
   if (trimmed === "") return null;
-  if (trimmed.toUpperCase() === "NE") return "NE";
+  const upper = trimmed.toUpperCase();
+  if (TASK_CODES.includes(upper as (typeof TASK_CODES)[number])) {
+    return upper as "NE" | "SC";
+  }
   const n = parseGradeInput(trimmed);
   if (n === null) return "INVALID";
   return n;
@@ -24,26 +29,35 @@ export function formatGrade(value: number | null | undefined): string {
 
 export function formatTaskGrade(value: TaskGrade | undefined): string {
   if (value === null || value === undefined) return "";
-  if (value === "NE") return "NE";
+  if (value === "NE" || value === "SC") return value;
   return String(value);
 }
 
 export function isValidTaskGrade(value: unknown): value is TaskGrade {
   if (value === null || value === undefined || value === "") return true;
-  if (value === "NE") return true;
+  if (value === "NE" || value === "SC") return true;
   const n = Number(value);
   return !Number.isNaN(n) && n >= 0 && n <= 10;
 }
 
-/** NE cuenta en la media como 0; las celdas vacías no cuentan. */
+function countsForAverage(tasks: TaskGrade[]): (number | "NE")[] {
+  return tasks.filter(
+    (v): v is number | "NE" => typeof v === "number" || v === "NE"
+  );
+}
+
+/** Solo notas y NE entran en la media; vacío y SC no cuentan. */
 export function averageTasksOnly(tasks: TaskGrade[]): {
   average: number | null;
   count: number;
   neCount: number;
+  scCount: number;
 } {
-  const entries = tasks.filter((v) => v !== null);
+  const entries = countsForAverage(tasks);
+  const scCount = tasks.filter((v) => v === "SC").length;
+
   if (entries.length === 0) {
-    return { average: null, count: 0, neCount: 0 };
+    return { average: null, count: 0, neCount: 0, scCount };
   }
 
   const neCount = entries.filter((v) => v === "NE").length;
@@ -56,5 +70,6 @@ export function averageTasksOnly(tasks: TaskGrade[]): {
     average: Math.round((sum / entries.length) * 100) / 100,
     count: entries.length,
     neCount,
+    scCount,
   };
 }

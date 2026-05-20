@@ -1,5 +1,9 @@
-/** Nota numérica, vacío (no cuenta en media) o NE = no entregado (cuenta como 0). */
-export type TaskGrade = number | null | "NE";
+/**
+ * - vacío: sin registro (no cuenta en media)
+ * - NE: no entregado (cuenta como 0)
+ * - SC: sin calificar, entregado (no cuenta en media)
+ */
+export type TaskGrade = number | null | "NE" | "SC";
 
 export interface Subject {
   _id: string;

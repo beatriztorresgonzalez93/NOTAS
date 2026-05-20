@@ -22,7 +22,7 @@ export function SubjectTableRow({
   notifier: Notifier;
 }) {
   const { persist, saving } = useSubjectPersist(subject, onUpdate, notifier);
-  const { average: tasksAverage, count: tasksCount, neCount } =
+  const { average: tasksAverage, count: tasksCount, neCount, scCount } =
     averageTasksOnly(subject.tasks);
 
   return (
@@ -73,6 +73,7 @@ export function SubjectTableRow({
             <span className="mt-0.5 text-[10px] font-normal opacity-80">
               {tasksCount} t.
               {neCount > 0 ? ` · ${neCount} NE` : ""}
+              {scCount > 0 ? ` · ${scCount} SC` : ""}
             </span>
           </span>
         ) : (

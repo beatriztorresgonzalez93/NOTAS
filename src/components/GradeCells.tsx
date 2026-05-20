@@ -54,6 +54,7 @@ export function TaskGradeCell({
     const t = local.trim();
     if (t === "") return null;
     if (t.toUpperCase() === "NE") return "NE";
+    if (t.toUpperCase() === "SC") return "SC";
     const n = parseGradeInput(t);
     return n !== null ? n : value;
   })();
@@ -63,7 +64,7 @@ export function TaskGradeCell({
       type="text"
       inputMode="text"
       placeholder="—"
-      title="Nota 0–10 o escribe NE"
+      title="0–10, NE (no entregado) o SC (sin calificar)"
       value={local}
       disabled={disabled || saving}
       onChange={(e) => {

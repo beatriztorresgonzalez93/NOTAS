@@ -17,6 +17,10 @@ export function gradeCellClasses(
     return `${BASE} ${FOCUS} border-amber-500/50 bg-amber-950/50 text-amber-300`;
   }
 
+  if (value === "SC") {
+    return `${BASE} ${FOCUS} border-sky-500/45 bg-sky-950/40 text-sky-300`;
+  }
+
   if (typeof value === "number") {
     const pass = value >= 5;
     if (options?.highlight) {
