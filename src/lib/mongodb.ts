@@ -33,7 +33,10 @@ export async function connectDB(): Promise<typeof mongoose> {
   }
 
   if (!cached.promise) {
-    cached.promise = mongoose.connect(getMongoUri());
+    cached.promise = mongoose.connect(getMongoUri(), {
+      family: 4,
+      serverSelectionTimeoutMS: 10000,
+    });
   }
 
   cached.conn = await cached.promise;

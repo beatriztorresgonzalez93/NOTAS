@@ -42,6 +42,12 @@ npm run dev
 
 Abre [http://localhost:3000](http://localhost:3000).
 
+### Error `querySrv ECONNREFUSED` (Atlas)
+
+1. En `.env` o `.env.local`, la URI debe usar el host del **cluster** (ej. `cluster0.ky0dxiv.mongodb.net`), no el nombre del proyecto.
+2. La base de datos va **después** del host: `...mongodb.net/notas?...`
+3. Si sigue fallando: en Atlas → **Connect** → copia la cadena que Atlas te da tal cual, o usa la conexión **estándar** (`mongodb://`, sin `srv`).
+
 ## Uso
 
 - Crea una **asignatura** (ej. Historia).
