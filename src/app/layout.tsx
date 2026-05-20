@@ -15,8 +15,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Registro de notas",
-  description: "Notas de trabajos, exámenes y nota final",
+  title: "Mis notas · FP",
+  description:
+    "Registro de notas: 9 tareas, examen y nota final por asignatura",
 };
 
 export default function RootLayout({
@@ -25,7 +26,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="es" className={`gs gs-light ${geistSans.variable} ${geistMono.variable}`}>
+    <html
+      lang="es"
+      className={`gs gs-dark ${geistSans.variable} ${geistMono.variable}`}
+    >
       <body className="min-h-full antialiased">
         <Providers>
           <StyledJsxRegistry>{children}</StyledJsxRegistry>

@@ -1,95 +1,84 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { TASK_COUNT } from "@/lib/subjects";
 import {
-  Box,
-  Button,
-  ButtonText,
-  Heading,
-  HStack,
-  Input,
-  InputField,
-  ScrollView,
-  Text,
-  VStack,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  FormControlLabelText,
-} from "@gluestack-ui/themed";
-import type { GradeEntry, Subject } from "@/types/subject";
-import { averageGrade } from "@/lib/grades";
+  averageFilledGrades,
+  formatGrade,
+  parseGradeInput,
+} from "@/lib/grades";
+import type { Subject } from "@/types/subject";
 
-function GradeList({
-  title,
-  items,
-  onRemove,
+function GradeCell({
+  value,
+  onSave,
+  disabled,
+  highlight,
 }: {
-  title: string;
-  items: GradeEntry[];
-  onRemove: (index: number) => void;
+  value: number | null;
+  onSave: (value: number | null) => Promise<void>;
+  disabled?: boolean;
+  highlight?: boolean;
 }) {
-  if (items.length === 0) {
-    return (
-      <Text size="sm" color="$textLight500">
-        Sin {title.toLowerCase()} registrados
-      </Text>
-    );
-  }
+  const [local, setLocal] = useState(formatGrade(value));
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    setLocal(formatGrade(value));
+  }, [value]);
+
+  const commit = async () => {
+    const parsed = parseGradeInput(local);
+    if (local.trim() !== "" && parsed === null) {
+      setLocal(formatGrade(value));
+      return;
+    }
+    if (parsed === value || (parsed === null && value === null)) return;
+
+    setSaving(true);
+    try {
+      await onSave(parsed);
+    } catch {
+      setLocal(formatGrade(value));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
-    <VStack space="xs">
-      {items.map((item, index) => (
-        <HStack
-          key={item._id ?? `${item.name}-${index}`}
-          justifyContent="space-between"
-          alignItems="center"
-          py="$1"
-        >
-          <Text flex={1} size="sm">
-            {item.name}
-          </Text>
-          <Text size="sm" fontWeight="$semibold" mx="$3">
-            {item.score}
-          </Text>
-          <Button
-            size="xs"
-            variant="outline"
-            action="negative"
-            onPress={() => onRemove(index)}
-          >
-            <ButtonText>Quitar</ButtonText>
-          </Button>
-        </HStack>
-      ))}
-    </VStack>
+    <input
+      type="text"
+      inputMode="decimal"
+      placeholder="—"
+      value={local}
+      disabled={disabled || saving}
+      onChange={(e) => setLocal(e.target.value)}
+      onBlur={() => void commit()}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") {
+          e.currentTarget.blur();
+        }
+      }}
+      className={`grade-cell w-full min-w-[2.75rem] rounded-md border px-2 py-2 text-center text-sm font-medium tabular-nums transition focus:outline-none focus:ring-2 focus:ring-[#e50914]/60 disabled:opacity-50 ${
+        highlight
+          ? "border-[#e50914]/50 bg-[#e50914]/10 text-white"
+          : "border-white/10 bg-white/5 text-zinc-100 placeholder:text-zinc-600 hover:border-white/20 hover:bg-white/[0.08]"
+      }`}
+    />
   );
 }
 
-function SubjectCard({
+function SubjectRow({
   subject,
   onUpdate,
-  onDelete,
 }: {
   subject: Subject;
   onUpdate: (updated: Subject) => void;
-  onDelete: (id: string) => void;
 }) {
-  const [workName, setWorkName] = useState("");
-  const [workScore, setWorkScore] = useState("");
-  const [examName, setExamName] = useState("");
-  const [examScore, setExamScore] = useState("");
-  const [finalOverride, setFinalOverride] = useState(
-    subject.finalGrade !== null ? String(subject.finalGrade) : ""
-  );
   const [saving, setSaving] = useState(false);
 
-  const calculated = averageGrade(subject.assignments, subject.exams);
-  const displayedFinal =
-    subject.finalGrade !== null ? subject.finalGrade : calculated;
-
   const persist = useCallback(
-    async (patch: Partial<Subject>) => {
+    async (patch: Partial<Pick<Subject, "tasks" | "exam" | "finalGrade">>) => {
       setSaving(true);
       try {
         const res = await fetch(`/api/subjects/${subject._id}`, {
@@ -98,8 +87,7 @@ function SubjectCard({
           body: JSON.stringify(patch),
         });
         if (!res.ok) throw new Error("Error al guardar");
-        const updated = (await res.json()) as Subject;
-        onUpdate(updated);
+        onUpdate((await res.json()) as Subject);
       } finally {
         setSaving(false);
       }
@@ -107,179 +95,59 @@ function SubjectCard({
     [subject._id, onUpdate]
   );
 
-  const parseScore = (value: string) => {
-    const n = parseFloat(value.replace(",", "."));
-    if (Number.isNaN(n) || n < 0 || n > 10) return null;
-    return Math.round(n * 100) / 100;
-  };
-
-  const addEntry = async (
-    field: "assignments" | "exams",
-    name: string,
-    scoreStr: string,
-    clear: () => void
-  ) => {
-    const score = parseScore(scoreStr);
-    if (!name.trim() || score === null) return;
-
-    const entry: GradeEntry = { name: name.trim(), score };
-    const list = [...subject[field], entry];
-    await persist({ [field]: list });
-    clear();
-  };
-
-  const removeEntry = async (field: "assignments" | "exams", index: number) => {
-    const list = subject[field].filter((_, i) => i !== index);
-    await persist({ [field]: list });
-  };
-
-  const saveFinalOverride = async () => {
-    if (finalOverride.trim() === "") {
-      await persist({ finalGrade: null });
-      return;
-    }
-    const score = parseScore(finalOverride);
-    if (score === null) return;
-    await persist({ finalGrade: score });
-  };
+  const suggested = averageFilledGrades([
+    ...subject.tasks,
+    subject.exam,
+  ]);
 
   return (
-    <Box
-      borderWidth={1}
-      borderColor="$borderLight300"
-      borderRadius="$lg"
-      p="$4"
-      bg="$backgroundLight0"
+    <tr
+      className={`group border-b border-white/[0.06] transition hover:bg-white/[0.03] ${
+        saving ? "opacity-70" : ""
+      }`}
     >
-      <HStack justifyContent="space-between" alignItems="center" mb="$3">
-        <Heading size="md">{subject.name}</Heading>
-        <Button
-          size="sm"
-          variant="outline"
-          action="negative"
-          onPress={() => onDelete(subject._id)}
-          isDisabled={saving}
-        >
-          <ButtonText>Eliminar</ButtonText>
-        </Button>
-      </HStack>
-
-      <VStack space="md">
-        <Box>
-          <Text fontWeight="$semibold" mb="$2">
-            Trabajos
-          </Text>
-          <GradeList
-            title="trabajos"
-            items={subject.assignments}
-            onRemove={(i) => removeEntry("assignments", i)}
+      <td className="sticky left-0 z-10 min-w-[11rem] max-w-[14rem] border-r border-white/[0.06] bg-[#0d0d0d] px-4 py-3 align-middle group-hover:bg-[#121212]">
+        <span className="text-sm font-medium leading-snug text-zinc-100">
+          {subject.name}
+        </span>
+      </td>
+      {subject.tasks.map((task, i) => (
+        <td key={i} className="px-1.5 py-2 align-middle">
+          <GradeCell
+            value={task}
+            disabled={saving}
+            onSave={async (score) => {
+              const tasks = [...subject.tasks];
+              tasks[i] = score;
+              await persist({ tasks });
+            }}
           />
-          <HStack space="sm" mt="$2" flexWrap="wrap">
-            <Input flex={1} minWidth={120}>
-              <InputField
-                placeholder="Nombre del trabajo"
-                value={workName}
-                onChangeText={setWorkName}
-              />
-            </Input>
-            <Input w={80}>
-              <InputField
-                placeholder="0-10"
-                value={workScore}
-                onChangeText={setWorkScore}
-                keyboardType="decimal-pad"
-              />
-            </Input>
-            <Button
-              size="sm"
-              onPress={() =>
-                addEntry("assignments", workName, workScore, () => {
-                  setWorkName("");
-                  setWorkScore("");
-                })
-              }
-              isDisabled={saving}
-            >
-              <ButtonText>Añadir</ButtonText>
-            </Button>
-          </HStack>
-        </Box>
-
-        <Divider />
-
-        <Box>
-          <Text fontWeight="$semibold" mb="$2">
-            Exámenes
-          </Text>
-          <GradeList
-            title="exámenes"
-            items={subject.exams}
-            onRemove={(i) => removeEntry("exams", i)}
-          />
-          <HStack space="sm" mt="$2" flexWrap="wrap">
-            <Input flex={1} minWidth={120}>
-              <InputField
-                placeholder="Nombre del examen"
-                value={examName}
-                onChangeText={setExamName}
-              />
-            </Input>
-            <Input w={80}>
-              <InputField
-                placeholder="0-10"
-                value={examScore}
-                onChangeText={setExamScore}
-                keyboardType="decimal-pad"
-              />
-            </Input>
-            <Button
-              size="sm"
-              onPress={() =>
-                addEntry("exams", examName, examScore, () => {
-                  setExamName("");
-                  setExamScore("");
-                })
-              }
-              isDisabled={saving}
-            >
-              <ButtonText>Añadir</ButtonText>
-            </Button>
-          </HStack>
-        </Box>
-
-        <Divider />
-
-        <Box>
-          <Text fontWeight="$semibold" mb="$1">
-            Nota final
-          </Text>
-          <Text size="sm" color="$textLight600" mb="$2">
-            Media automática:{" "}
-            {calculated !== null ? calculated : "—"} · Mostrada:{" "}
-            {displayedFinal !== null ? displayedFinal : "—"}
-          </Text>
-          <HStack space="sm" alignItems="center">
-            <Input flex={1}>
-              <InputField
-                placeholder="Manual (vacío = usar media)"
-                value={finalOverride}
-                onChangeText={setFinalOverride}
-                keyboardType="decimal-pad"
-              />
-            </Input>
-            <Button size="sm" onPress={saveFinalOverride} isDisabled={saving}>
-              <ButtonText>Guardar</ButtonText>
-            </Button>
-          </HStack>
-        </Box>
-      </VStack>
-    </Box>
+        </td>
+      ))}
+      <td className="px-1.5 py-2 align-middle">
+        <GradeCell
+          value={subject.exam}
+          disabled={saving}
+          onSave={async (exam) => persist({ exam })}
+        />
+      </td>
+      <td className="px-2 py-2 align-middle">
+        <GradeCell
+          value={subject.finalGrade}
+          disabled={saving}
+          highlight
+          onSave={async (finalGrade) => persist({ finalGrade })}
+        />
+      </td>
+      <td className="hidden px-3 py-2 align-middle text-center text-xs text-zinc-500 lg:table-cell">
+        {suggested !== null ? suggested : "—"}
+      </td>
+    </tr>
   );
 }
 
 export default function NotasApp() {
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [newName, setNewName] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -292,7 +160,7 @@ export default function NotasApp() {
       setSubjects(await res.json());
     } catch {
       setError(
-        "No se pudo conectar con la base de datos. Revisa MONGODB_URI en .env.local."
+        "No se pudo conectar con la base de datos. Revisa MONGODB_URI."
       );
     } finally {
       setLoading(false);
@@ -303,91 +171,89 @@ export default function NotasApp() {
     loadSubjects();
   }, [loadSubjects]);
 
-  const addSubject = async () => {
-    const name = newName.trim();
-    if (!name) return;
-
-    const res = await fetch("/api/subjects", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    });
-
-    if (!res.ok) {
-      setError("No se pudo crear la asignatura");
-      return;
-    }
-
-    const created = (await res.json()) as Subject;
-    setSubjects((prev) => [created, ...prev]);
-    setNewName("");
-  };
-
-  const deleteSubject = async (id: string) => {
-    const res = await fetch(`/api/subjects/${id}`, { method: "DELETE" });
-    if (!res.ok) return;
-    setSubjects((prev) => prev.filter((s) => s._id !== id));
-  };
+  const taskHeaders = Array.from({ length: TASK_COUNT }, (_, i) => `T${i + 1}`);
 
   return (
-    <Box flex={1} bg="$backgroundLight50" py="$8" px="$4">
-      <Box maxWidth={720} width="100%" alignSelf="center">
-        <Heading size="2xl" mb="$2">
-          Registro de notas
-        </Heading>
-        <Text color="$textLight600" mb="$6">
-          Trabajos, exámenes y nota final por asignatura (escala 0–10).
-        </Text>
+    <div className="notas-app min-h-screen bg-[#0a0a0a] text-zinc-100">
+      <div className="pointer-events-none fixed inset-0 bg-[radial-gradient(ellipse_at_top,_rgba(229,9,20,0.12)_0%,_transparent_55%)]" />
 
-        <FormControl mb="$6">
-          <FormControlLabel>
-            <FormControlLabelText>Nueva asignatura</FormControlLabelText>
-          </FormControlLabel>
-          <HStack space="md">
-            <Input flex={1}>
-              <InputField
-                placeholder="Ej. Matemáticas"
-                value={newName}
-                onChangeText={setNewName}
-              />
-            </Input>
-            <Button onPress={addSubject}>
-              <ButtonText>Añadir</ButtonText>
-            </Button>
-          </HStack>
-        </FormControl>
+      <div className="relative mx-auto max-w-[100rem] px-4 py-8 sm:px-6 lg:px-10">
+        <header className="mb-8 border-b border-white/10 pb-6">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-[0.35em] text-[#e50914]">
+            FP · Registro académico
+          </p>
+          <h1 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+            Mis <span className="text-[#e50914]">notas</span>
+          </h1>
+          <p className="mt-2 max-w-2xl text-sm text-zinc-400">
+            Escala 0–10. Las asignaturas son fijas; escribe en cada celda y
+            pulsa Enter o sal del campo para guardar.
+          </p>
+        </header>
 
         {error && (
-          <Box bg="$error100" p="$3" borderRadius="$md" mb="$4">
-            <Text color="$error700">{error}</Text>
-          </Box>
+          <div className="mb-6 rounded-lg border border-red-500/30 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
         )}
 
         {loading ? (
-          <Text>Cargando…</Text>
-        ) : subjects.length === 0 ? (
-          <Text color="$textLight500">
-            Aún no hay asignaturas. Añade la primera arriba.
-          </Text>
+          <div className="flex items-center gap-3 text-zinc-400">
+            <span className="inline-block h-5 w-5 animate-spin rounded-full border-2 border-[#e50914] border-t-transparent" />
+            Cargando asignaturas…
+          </div>
         ) : (
-          <ScrollView>
-            <VStack space="lg" pb="$8">
-              {subjects.map((subject) => (
-                <SubjectCard
-                  key={subject._id}
-                  subject={subject}
-                  onUpdate={(updated) =>
-                    setSubjects((prev) =>
-                      prev.map((s) => (s._id === updated._id ? updated : s))
-                    )
-                  }
-                  onDelete={deleteSubject}
-                />
-              ))}
-            </VStack>
-          </ScrollView>
+          <div className="overflow-hidden rounded-xl border border-white/10 bg-[#141414]/90 shadow-2xl shadow-black/50 backdrop-blur-sm">
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[56rem] border-collapse text-left">
+                <thead>
+                  <tr className="border-b border-white/10 bg-[#1a1a1a]">
+                    <th className="sticky left-0 z-20 min-w-[11rem] border-r border-white/10 bg-[#1a1a1a] px-4 py-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">
+                      Asignatura
+                    </th>
+                    {taskHeaders.map((label) => (
+                      <th
+                        key={label}
+                        className="px-1.5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500"
+                      >
+                        {label}
+                      </th>
+                    ))}
+                    <th className="px-1.5 py-4 text-center text-xs font-semibold uppercase tracking-wider text-zinc-500">
+                      Examen
+                    </th>
+                    <th className="px-2 py-4 text-center text-xs font-semibold uppercase tracking-wider text-[#e50914]">
+                      Final
+                    </th>
+                    <th className="hidden px-3 py-4 text-center text-xs font-semibold uppercase tracking-wider text-zinc-600 lg:table-cell">
+                      Media*
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {subjects.map((subject) => (
+                    <SubjectRow
+                      key={subject._id}
+                      subject={subject}
+                      onUpdate={(updated) =>
+                        setSubjects((prev) =>
+                          prev.map((s) =>
+                            s._id === updated._id ? updated : s
+                          )
+                        )
+                      }
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <p className="border-t border-white/[0.06] px-4 py-3 text-xs text-zinc-600">
+              * Media orientativa de tareas + examen (solo referencia; la nota
+              final la escribes tú).
+            </p>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
 }

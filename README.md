@@ -50,9 +50,15 @@ Abre [http://localhost:3000](http://localhost:3000).
 
 ## Uso
 
-- Crea una **asignatura** (ej. Historia).
-- Añade **trabajos** y **exámenes** con nombre y nota (0–10).
-- La **nota final** se calcula como media de todos los apuntes; puedes fijar una nota manual dejando el campo y pulsando Guardar (vacío = volver a la media).
+Las **9 asignaturas** del ciclo son fijas (no se pueden crear ni borrar en la web).
+
+Por cada asignatura rellena:
+
+- **T1–T9**: nota de cada tarea (0–10)
+- **Examen**: una nota
+- **Final**: nota final (la escribes tú)
+
+Al salir de cada celda (o pulsar Enter) se guarda en MongoDB. La columna *Media* es solo orientativa (tareas + examen).
 
 ## Scripts
 

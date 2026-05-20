@@ -1,32 +1,38 @@
 import mongoose, { Schema, models, model } from "mongoose";
-
-export interface IGradeEntry {
-  name: string;
-  score: number;
-}
+import { TASK_COUNT } from "@/lib/subjects";
 
 export interface ISubject {
   _id: mongoose.Types.ObjectId;
+  slug: string;
   name: string;
-  assignments: IGradeEntry[];
-  exams: IGradeEntry[];
+  order: number;
+  tasks: (number | null)[];
+  exam: number | null;
   finalGrade: number | null;
 }
 
-const gradeEntrySchema = new Schema<IGradeEntry>(
-  {
-    name: { type: String, required: true, trim: true },
-    score: { type: Number, required: true, min: 0, max: 10 },
-  },
-  { _id: true }
-);
+const gradeField = {
+  type: Number,
+  default: null,
+  min: 0,
+  max: 10,
+};
 
 const subjectSchema = new Schema<ISubject>(
   {
-    name: { type: String, required: true, trim: true },
-    assignments: { type: [gradeEntrySchema], default: [] },
-    exams: { type: [gradeEntrySchema], default: [] },
-    finalGrade: { type: Number, default: null, min: 0, max: 10 },
+    slug: { type: String, required: true, unique: true, immutable: true },
+    name: { type: String, required: true },
+    order: { type: Number, required: true },
+    tasks: {
+      type: [gradeField],
+      default: () => Array(TASK_COUNT).fill(null),
+      validate: {
+        validator: (v: unknown[]) => v.length === TASK_COUNT,
+        message: `Debe haber exactamente ${TASK_COUNT} tareas`,
+      },
+    },
+    exam: gradeField,
+    finalGrade: gradeField,
   },
   { timestamps: true }
 );
