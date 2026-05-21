@@ -1,8 +1,6 @@
 "use client";
 
 import { TASK_COUNT } from "@/lib/subjects";
-import { averageTasksOnly } from "@/lib/grades";
-import { mediaBadgeClasses } from "@/lib/grade-styles";
 import { useSubjectPersist } from "@/hooks/useSubjectPersist";
 import { GradeCell, TaskGradeCell } from "@/components/GradeCells";
 import type { Subject } from "@/types/subject";
@@ -23,7 +21,6 @@ export function SubjectCard({
   notifier: Notifier;
 }) {
   const { persist, saving } = useSubjectPersist(subject, onUpdate, notifier);
-  const { average, count, neCount, scCount } = averageTasksOnly(subject.tasks);
   const taskLabels = Array.from({ length: TASK_COUNT }, (_, i) => `T${i + 1}`);
 
   return (
@@ -32,23 +29,9 @@ export function SubjectCard({
         saving ? "opacity-80" : ""
       }`}
     >
-      <div className="mb-4 flex items-start justify-between gap-3">
-        <h2 className="text-sm font-semibold leading-snug text-white">
-          {subject.name}
-        </h2>
-        {average !== null && (
-          <span
-            className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums ${mediaBadgeClasses(average)}`}
-          >
-            {average}
-            <span className="ml-1 font-normal opacity-70">
-              ({count}
-              {neCount > 0 ? ` · ${neCount} NE` : ""}
-              {scCount > 0 ? ` · ${scCount} SC` : ""})
-            </span>
-          </span>
-        )}
-      </div>
+      <h2 className="mb-4 text-sm font-semibold leading-snug text-white">
+        {subject.name}
+      </h2>
 
       <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-500">
         Tareas

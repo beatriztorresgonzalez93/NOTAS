@@ -39,37 +39,3 @@ export function isValidTaskGrade(value: unknown): value is TaskGrade {
   const n = Number(value);
   return !Number.isNaN(n) && n >= 0 && n <= 10;
 }
-
-function countsForAverage(tasks: TaskGrade[]): (number | "NE")[] {
-  return tasks.filter(
-    (v): v is number | "NE" => typeof v === "number" || v === "NE"
-  );
-}
-
-/** Solo notas y NE entran en la media; vacío y SC no cuentan. */
-export function averageTasksOnly(tasks: TaskGrade[]): {
-  average: number | null;
-  count: number;
-  neCount: number;
-  scCount: number;
-} {
-  const entries = countsForAverage(tasks);
-  const scCount = tasks.filter((v) => v === "SC").length;
-
-  if (entries.length === 0) {
-    return { average: null, count: 0, neCount: 0, scCount };
-  }
-
-  const neCount = entries.filter((v) => v === "NE").length;
-  const sum = entries.reduce<number>(
-    (acc, v) => acc + (v === "NE" ? 0 : v),
-    0
-  );
-
-  return {
-    average: Math.round((sum / entries.length) * 100) / 100,
-    count: entries.length,
-    neCount,
-    scCount,
-  };
-}

@@ -84,9 +84,9 @@ export default function NotasApp() {
           <p className="mt-2 max-w-2xl text-sm text-zinc-400">
             Escala 0–10. <span className="text-emerald-400">Verde</span> aprueba,
             <span className="text-red-400"> rojo</span> suspenso,{" "}
-            <span className="text-amber-400">NE</span> no entregado (0 en media),{" "}
-            <span className="text-sky-400">SC</span> entregado sin nota (no
-            cuenta). Se guarda al salir del campo.
+            <span className="text-amber-400">NE</span> no entregado,{" "}
+            <span className="text-sky-400">SC</span> sin calificar. Se guarda al
+            salir del campo.
           </p>
           {legend}
         </header>
@@ -139,9 +139,6 @@ export default function NotasApp() {
                       <th className="px-2 py-4 text-center text-xs font-semibold uppercase tracking-wider text-[#e50914]">
                         Final
                       </th>
-                      <th className="px-3 py-4 text-center text-xs font-semibold uppercase tracking-wider text-zinc-600">
-                        Media*
-                      </th>
                     </tr>
                   </thead>
                   <tbody>
@@ -156,9 +153,6 @@ export default function NotasApp() {
                   </tbody>
                 </table>
               </div>
-              <p className="border-t border-white/[0.06] px-4 py-3 text-xs text-zinc-600">
-                * Media: notas y NE. SC y vacío no cuentan.
-              </p>
             </div>
           </>
         )}

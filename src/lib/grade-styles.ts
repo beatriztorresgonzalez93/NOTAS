@@ -35,9 +35,3 @@ export function gradeCellClasses(
 
   return `${BASE} ${FOCUS} border-white/10 bg-white/5 text-zinc-100`;
 }
-
-export function mediaBadgeClasses(average: number | null): string {
-  if (average === null) return "bg-zinc-800/80 text-zinc-500";
-  if (average >= 5) return "bg-emerald-950/60 text-emerald-300 ring-1 ring-emerald-500/30";
-  return "bg-red-950/60 text-red-300 ring-1 ring-red-500/30";
-}

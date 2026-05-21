@@ -1,7 +1,7 @@
 /**
- * - vacío: sin registro (no cuenta en media)
- * - NE: no entregado (cuenta como 0)
- * - SC: sin calificar, entregado (no cuenta en media)
+ * - vacío: sin registro
+ * - NE: no entregado
+ * - SC: entregado, sin calificar aún
  */
 export type TaskGrade = number | null | "NE" | "SC";
 

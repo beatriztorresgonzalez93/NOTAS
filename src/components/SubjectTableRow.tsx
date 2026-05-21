@@ -1,7 +1,5 @@
 "use client";
 
-import { averageTasksOnly } from "@/lib/grades";
-import { mediaBadgeClasses } from "@/lib/grade-styles";
 import { useSubjectPersist } from "@/hooks/useSubjectPersist";
 import { GradeCell, TaskGradeCell } from "@/components/GradeCells";
 import type { Subject } from "@/types/subject";
@@ -22,8 +20,6 @@ export function SubjectTableRow({
   notifier: Notifier;
 }) {
   const { persist, saving } = useSubjectPersist(subject, onUpdate, notifier);
-  const { average: tasksAverage, count: tasksCount, neCount, scCount } =
-    averageTasksOnly(subject.tasks);
 
   return (
     <tr
@@ -63,22 +59,6 @@ export function SubjectTableRow({
           highlight
           onSave={async (finalGrade) => persist({ finalGrade })}
         />
-      </td>
-      <td className="px-3 py-2 align-middle text-center">
-        {tasksAverage !== null ? (
-          <span
-            className={`inline-flex flex-col items-center rounded-lg px-2 py-1 text-sm font-bold tabular-nums ${mediaBadgeClasses(tasksAverage)}`}
-          >
-            {tasksAverage}
-            <span className="mt-0.5 text-[10px] font-normal opacity-80">
-              {tasksCount} t.
-              {neCount > 0 ? ` · ${neCount} NE` : ""}
-              {scCount > 0 ? ` · ${scCount} SC` : ""}
-            </span>
-          </span>
-        ) : (
-          <span className="text-xs text-zinc-600">—</span>
-        )}
       </td>
     </tr>
   );
